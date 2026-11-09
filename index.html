@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para Alê | Lírios Brancos & Penumbra</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts (Cormorant Garamond & Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        night: '#070709',
+                        graphite: '#111116',
+                        'graphite-light': '#181822',
+                        silver: '#cbd5e1',
+                        'silver-dark': '#475569',
+                        'glowing-white': '#f8fafc',
+                        'lily-white': '#f1f5f9'
+                    },
+                    fontFamily: {
+                        serif: ['Cormorant Garamond', 'serif'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            background-color: #070709;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Dark Grain Texture */
+        .bg-dark-grain {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.05) 0.5px, transparent 0.5px);
+            background-size: 20px 20px;
+        }
+
+        /* Silver Glow Effects */
+        .glow-silver {
+            box-shadow: 0 0 25px rgba(241, 245, 249, 0.08);
+        }
+        .glow-silver-hover:hover {
+            box-shadow: 0 0 35px rgba(241, 245, 249, 0.18);
+            border-color: rgba(241, 245, 249, 0.4);
+        }
+
+        /* 3D Flip Card */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar for Lyrics Box */
+        .lyrics-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .lyrics-scroll::-webkit-scrollbar-track {
+            background: rgba(17, 17, 22, 0.6);
+        }
+        .lyrics-scroll::-webkit-scrollbar-thumb {
+            background: rgba(203, 213, 225, 0.2);
+            border-radius: 4px;
+        }
+        .lyrics-scroll::-webkit-scrollbar-thumb:hover {
+            background: rgba(203, 213, 225, 0.5);
+        }
+
+        /* Active Lyric Line Highlighting */
+        .lyric-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0.4;
+        }
+        .lyric-item.active {
+            opacity: 1;
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 3px solid #cbd5e1;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+        }
+
+        /* Soundbar animation */
+        @keyframes soundBar {
+            0%, 100% { height: 4px; }
+            50% { height: 18px; }
+        }
+        .animate-bar-1 { animation: soundBar 1.2s ease-in-out infinite; }
+        .animate-bar-2 { animation: soundBar 0.9s ease-in-out infinite 0.2s; }
+        .animate-bar-3 { animation: soundBar 1.4s ease-in-out infinite 0.4s; }
+        .animate-bar-4 { animation: soundBar 1.0s ease-in-out infinite 0.1s; }
+
+        /* SVG Lily Bloom Glow Transition */
+        .lily-petal {
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-origin: center bottom;
+        }
+        .lily-group:hover .petal-left {
+            transform: rotate(-6deg) scale(1.03);
+        }
+        .lily-group:hover .petal-right {
+            transform: rotate(6deg) scale(1.03);
+        }
+        .lily-group:hover .petal-center {
+            transform: translateY(-4deg) scale(1.05);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen selection:bg-silver/20 selection:text-white">
+
+    <!-- CANVAS BACKGROUND: Floating White Lily Petals -->
+    <canvas id="petals-canvas" class="fixed inset-0 pointer-events-none z-0 opacity-40"></canvas>
+    
+    <!-- Background Dark Texture -->
+    <div class="fixed inset-0 pointer-events-none z-0 bg-dark-grain"></div>
+
+    <!-- MAIN WRAPPER -->
+    <div class="relative z-10 max-w-4xl mx-auto px-4 py-10 sm:px-6 lg:px-8 flex flex-col gap-14 sm:gap-16">
+
+        <!-- HEADER / HERO SECTION -->
+        <header class="text-center pt-4 sm:pt-8 flex flex-col items-center">
+            
+            <!-- Dark Tag Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-graphite border border-silver/20 text-xs font-mono text-silver/80 tracking-widest uppercase mb-6">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-300 animate-pulse"></span>
+                <span>Espaço Noturno • Para Alê</span>
+            </div>
+
+            <!-- INTERACTIVE SVG WHITE LILY -->
+            <div class="relative group cursor-pointer my-2 lily-group" id="interactive-lily" title="Clique no lírio para ler uma mensagem especial">
+                <!-- Glowing Backdrop Aura -->
+                <div class="absolute inset-0 bg-white/5 rounded-full filter blur-3xl group-hover:bg-white/10 transition-all duration-700"></div>
+
+                <!-- SVG White Lily Art -->
+                <svg class="w-44 h-44 sm:w-56 sm:h-56 relative z-10 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.15)]" viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="petalGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#cbd5e1" stop-opacity="0.3"/>
+                            <stop offset="60%" stop-color="#f8fafc" stop-opacity="0.9"/>
+                            <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
+                        </linearGradient>
+                        <linearGradient id="stamenGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+                            <stop offset="0%" stop-color="#64748b"/>
+                            <stop offset="100%" stop-color="#fef08a"/>
+                        </linearGradient>
+                        <filter id="silverGlow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge>
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+
+                    <!-- Stem & Leaves -->
+                    <path d="M 100 140 Q 100 180 95 200" stroke="#334155" stroke-width="4" fill="none"/>
+                    <path d="M 98 170 Q 70 160 55 175 C 75 180 92 175 98 170" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+                    <path d="M 100 160 Q 130 150 145 165 C 125 170 108 165 100 160" fill="#1e293b" stroke="#475569" stroke-width="0.8"/>
+
+                    <!-- Outer Back Petals -->
+                    <path class="lily-petal" d="M 100 135 Q 50 110 35 70 C 60 70 85 95 100 135" fill="url(#petalGrad)" opacity="0.75" stroke="#cbd5e1" stroke-width="0.5"/>
+                    <path class="lily-petal" d="M 100 135 Q 150 110 165 70 C 140 70 115 95 100 135" fill="url(#petalGrad)" opacity="0.75" stroke="#cbd5e1" stroke-width="0.5"/>
+                    <path class="lily-petal" d="M 100 135 Q 100 60 100 30 C 115 65 110 100 100 135" fill="url(#petalGrad)" opacity="0.85" stroke="#cbd5e1" stroke-width="0.5"/>
+
+                    <!-- Inner Main Petals -->
+                    <path class="lily-petal petal-left" d="M 100 140 Q 55 90 45 45 C 75 55 92 90 100 140" fill="url(#petalGrad)" filter="url(#silverGlow)" stroke="#f8fafc" stroke-width="0.8"/>
+                    <path class="lily-petal petal-right" d="M 100 140 Q 145 90 155 45 C 125 55 108 90 100 140" fill="url(#petalGrad)" filter="url(#silverGlow)" stroke="#f8fafc" stroke-width="0.8"/>
+                    <path class="lily-petal petal-center" d="M 100 142 Q 100 80 100 35 C 120 60 115 105 100 142" fill="url(#petalGrad)" filter="url(#silverGlow)" stroke="#ffffff" stroke-width="1"/>
+
+                    <!-- Stamens / Pistil -->
+                    <path d="M 100 130 Q 90 90 85 75" stroke="url(#stamenGrad)" stroke-width="2" fill="none"/>
+                    <circle cx="85" cy="74" r="3" fill="#fef08a"/>
+
+                    <path d="M 100 130 Q 96 85 95 68" stroke="url(#stamenGrad)" stroke-width="2" fill="none"/>
+                    <circle cx="95" cy="67" r="3" fill="#fef08a"/>
+
+                    <path d="M 100 130 Q 105 85 107 68" stroke="url(#stamenGrad)" stroke-width="2" fill="none"/>
+                    <circle cx="107" cy="67" r="3" fill="#fef08a"/>
+
+                    <path d="M 100 130 Q 112 90 118 75" stroke="url(#stamenGrad)" stroke-width="2" fill="none"/>
+                    <circle cx="118" cy="74" r="3" fill="#fef08a"/>
+
+                    <!-- Center Base Dew Glow -->
+                    <circle cx="100" cy="138" r="6" fill="#f8fafc" opacity="0.9" filter="url(#silverGlow)"/>
+                </svg>
+
+                <p class="text-[11px] font-mono text-silver/60 mt-2 uppercase tracking-widest group-hover:text-silver transition-colors">
+                    [ Clique no lírio ]
+                </p>
+            </div>
+
+            <!-- Main Title & Subtitle -->
+            <h1 class="font-serif text-3xl sm:text-5xl text-glowing-white font-light tracking-wide leading-tight max-w-2xl mt-4">
+                Entre Lírios & Penumbras
+            </h1>
+
+            <p class="text-silver-dark sm:text-silver/70 text-sm sm:text-base max-w-xl font-light leading-relaxed mt-3">
+                Jutes — <em>Sleepyhead</em> com legenda e tradução em tempo real.
+            </p>
+
+            <div class="w-16 h-px bg-gradient-to-r from-transparent via-silver/40 to-transparent my-6"></div>
+        </header>
+
+        <!-- SECTION: CUSTOM AUDIO PLAYER WITH DUAL-LANGUAGE LYRICS -->
+        <section class="bg-graphite/90 border border-silver/15 rounded-3xl p-5 sm:p-8 shadow-2xl backdrop-blur relative overflow-hidden glow-silver">
+            
+            <!-- Player Header -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/5">
+                <div>
+                    <span class="text-xs font-mono text-silver/50 uppercase tracking-widest block">Trilha Sonora</span>
+                    <h2 class="font-serif text-2xl sm:text-3xl text-glowing-white font-normal mt-0.5">Jutes — Sleepyhead</h2>
+                </div>
+                
+                <!-- Audio Visualizer Indicator -->
+                <div class="flex items-end gap-1 h-5 px-3 py-1 bg-night/80 rounded-full border border-silver/10">
+                    <div id="bar-1" class="w-1 bg-silver/40 rounded-full h-1"></div>
+                    <div id="bar-2" class="w-1 bg-silver/60 rounded-full h-1"></div>
+                    <div id="bar-3" class="w-1 bg-silver/80 rounded-full h-1"></div>
+                    <div id="bar-4" class="w-1 bg-white rounded-full h-1"></div>
+                    <span id="player-state-text" class="text-[10px] font-mono text-silver/60 ml-2">Pausado</span>
+                </div>
+            </div>
+
+            <!-- HTML5 Audio Element set to ./musica.mp3 -->
+            <audio id="custom-audio" preload="metadata" src="./musica.mp3">
+                Seu navegador não suporta o reprodutor de áudio HTML5.
+            </audio>
+
+            <!-- Main Player Controls Container -->
+            <div class="flex flex-col gap-6">
+                
+                <!-- Progress Bar & Time -->
+                <div class="flex flex-col gap-2">
+                    <div id="progress-container" class="w-full bg-night rounded-full h-2 cursor-pointer relative overflow-hidden border border-white/5">
+                        <div id="progress-bar" class="bg-gradient-to-r from-silver/40 via-silver to-white h-full w-0 transition-all duration-150"></div>
+                    </div>
+                    <div class="flex justify-between text-[11px] font-mono text-silver/50">
+                        <span id="current-time">00:00</span>
+                        <span id="total-duration">03:00</span>
+                    </div>
+                </div>
+
+                <!-- Controls Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    
+                    <!-- Left: Volume Control -->
+                    <div class="flex items-center gap-2 text-silver/60">
+                        <button id="btn-mute" class="hover:text-white transition-colors" title="Mutar / Desmutar">
+                            <i id="volume-icon" class="fas fa-volume-high text-xs"></i>
+                        </button>
+                        <input id="volume-slider" type="range" min="0" max="1" step="0.05" value="0.8" class="w-20 accent-silver cursor-pointer h-1 rounded-lg">
+                    </div>
+
+                    <!-- Center: Main Play/Pause Button -->
+                    <button id="btn-play-toggle" class="w-14 h-14 rounded-full bg-silver/10 hover:bg-silver/20 border border-silver/30 text-white flex items-center justify-center transition-all transform hover:scale-105 active:scale-95 glow-silver">
+                        <i id="play-pause-icon" class="fas fa-play text-lg ml-0.5"></i>
+                    </button>
+
+                    <!-- Right: Custom Music Source Button (Panel Toggle) -->
+                    <button id="btn-change-song" class="px-3 py-1.5 rounded-lg bg-night hover:bg-graphite-light border border-silver/20 text-xs font-mono text-silver/80 hover:text-white transition-all flex items-center gap-2">
+                        <i class="fas fa-sliders text-xs"></i>
+                        <span>Opções de Áudio</span>
+                    </button>
+                </div>
+
+                <!-- SYNCHRONIZED DUAL-LANGUAGE LYRICS DISPLAY BOX -->
+                <div class="mt-4 border border-silver/15 rounded-2xl bg-night/80 p-4 sm:p-6 backdrop-blur">
+                    <div class="flex items-center justify-between pb-3 border-b border-white/5 mb-4">
+                        <div class="flex items-center gap-2 text-silver/70">
+                            <i class="fas fa-closed-captioning text-sm"></i>
+                            <span class="text-xs font-mono uppercase tracking-wider">Legenda & Tradução Sincronizada</span>
+                        </div>
+                        <span class="text-[10px] font-mono text-silver/40">Clique no verso para navegar</span>
+                    </div>
+
+                    <!-- Scrollable Lyrics Container -->
+                    <div id="lyrics-scroll-box" class="lyrics-scroll h-72 overflow-y-auto pr-2 flex flex-col gap-3">
+                        <!-- Lyric Items will be dynamically generated here -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- INLINE PANEL: Alternative Audio Selector -->
+            <div id="song-panel" class="hidden mt-6 pt-6 border-t border-white/10 flex flex-col gap-4 bg-night/60 p-4 rounded-2xl">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-mono text-silver uppercase">Substituir Áudio Temporariamente</span>
+                    <button id="btn-close-panel" class="text-silver/50 hover:text-white text-xs"><i class="fas fa-xmark"></i></button>
+                </div>
+                
+                <p class="text-xs text-silver/70 font-light">
+                    O site busca por padrão o arquivo <strong>musica.mp3</strong> no seu repositório. Caso queira testar com um MP3 local:
+                </p>
+
+                <!-- Option A: Upload Local MP3 File -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11px] font-mono text-silver/60">Carregar arquivo do computador/celular</label>
+                    <input type="file" id="file-input" accept="audio/*" class="text-xs text-silver/80 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-mono file:bg-silver/20 file:text-white hover:file:bg-silver/30 cursor-pointer">
+                </div>
+
+                <!-- Option B: Direct URL -->
+                <div class="flex flex-col gap-1.5">
+                    <label class="text-[11px] font-mono text-silver/60">Ou cole um link direto de áudio (.mp3)</label>
+                    <div class="flex gap-2">
+                        <input type="url" id="url-input" placeholder="https://site.com/audio.mp3" class="flex-1 bg-graphite border border-silver/20 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none focus:border-silver">
+                        <button id="btn-load-url" class="px-3 py-1.5 bg-silver/20 hover:bg-silver/30 text-white rounded-lg text-xs font-mono">Tocar</button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- SECTION: PÉTALAS & PENSAMENTOS (CARDS INTERATIVOS) -->
+        <section class="flex flex-col gap-8">
+            <div class="text-center">
+                <span class="text-xs font-mono text-silver/50 uppercase tracking-widest">Notas na Penumbra</span>
+                <h2 class="font-serif text-3xl sm:text-4xl text-glowing-white font-light mt-1">Pétalas & Reflexos</h2>
+                <p class="text-silver-dark sm:text-silver/60 text-sm mt-2">Clique em cada cartão para virar e ler a mensagem.</p>
+            </div>
+
+            <!-- Grid of 3D Flip Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                
+                <!-- CARD 1 -->
+                <div class="card-container h-56 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d bg-graphite border border-silver/15 rounded-2xl p-6 flex flex-col justify-between shadow-lg glow-silver-hover">
+                        <!-- Front -->
+                        <div class="absolute inset-6 flex flex-col justify-between backface-hidden">
+                            <div class="flex justify-between items-center text-silver/40">
+                                <i class="fas fa-spa text-sm"></i>
+                                <span class="font-mono text-[10px]">01 / LÍRIO BRANCO</span>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-glowing-white font-light">Calma no Silêncio</h3>
+                                <p class="text-xs text-silver/60 font-light mt-2">Há uma paz bonita quando não precisamos ter pressa para nada.</p>
+                            </div>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Virar ↺</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-6 bg-graphite-light border border-silver/20 rounded-xl p-4 flex flex-col justify-between backface-hidden rotate-y-180">
+                            <span class="font-mono text-[10px] text-silver/40">MENSAGEM</span>
+                            <p class="font-serif text-base text-silver italic my-auto leading-relaxed">
+                                "Que a correria do dia a dia nunca tire a leveza das conversas boas e da companhia tranquila."
+                            </p>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Voltar ↺</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 2 -->
+                <div class="card-container h-56 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d bg-graphite border border-silver/15 rounded-2xl p-6 flex flex-col justify-between shadow-lg glow-silver-hover">
+                        <!-- Front -->
+                        <div class="absolute inset-6 flex flex-col justify-between backface-hidden">
+                            <div class="flex justify-between items-center text-silver/40">
+                                <i class="fas fa-moon text-sm"></i>
+                                <span class="font-mono text-[10px]">02 / PENUMBRA</span>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-glowing-white font-light">Sintonia Simples</h3>
+                                <p class="text-xs text-silver/60 font-light mt-2">As melhores conexões são aquelas que acontecem sem esforço.</p>
+                            </div>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Virar ↺</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-6 bg-graphite-light border border-silver/20 rounded-xl p-4 flex flex-col justify-between backface-hidden rotate-y-180">
+                            <span class="font-mono text-[10px] text-silver/40">MEMÓRIA</span>
+                            <p class="font-serif text-base text-silver italic my-auto leading-relaxed">
+                                "Entre músicas, piadas e conversas soltas, é bom saber que existe essa cumplicidade."
+                            </p>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Voltar ↺</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 3 -->
+                <div class="card-container h-56 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d bg-graphite border border-silver/15 rounded-2xl p-6 flex flex-col justify-between shadow-lg glow-silver-hover">
+                        <!-- Front -->
+                        <div class="absolute inset-6 flex flex-col justify-between backface-hidden">
+                            <div class="flex justify-between items-center text-silver/40">
+                                <i class="fas fa-music text-sm"></i>
+                                <span class="font-mono text-[10px]">03 / ACORDES</span>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-glowing-white font-light">Trilha Pessoal</h3>
+                                <p class="text-xs text-silver/60 font-light mt-2">Certas músicas têm o poder de guardar momentos para sempre.</p>
+                            </div>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Virar ↺</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-6 bg-graphite-light border border-silver/20 rounded-xl p-4 flex flex-col justify-between backface-hidden rotate-y-180">
+                            <span class="font-mono text-[10px] text-silver/40">POESIA</span>
+                            <p class="font-serif text-base text-silver italic my-auto leading-relaxed">
+                                "Colocar uma música pra tocar e deixar o tempo passar sem pressa nenhuma."
+                            </p>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Voltar ↺</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CARD 4 -->
+                <div class="card-container h-56 perspective-1000 cursor-pointer">
+                    <div class="card-inner relative w-full h-full transform-style-3d bg-graphite border border-silver/15 rounded-2xl p-6 flex flex-col justify-between shadow-lg glow-silver-hover">
+                        <!-- Front -->
+                        <div class="absolute inset-6 flex flex-col justify-between backface-hidden">
+                            <div class="flex justify-between items-center text-silver/40">
+                                <i class="fas fa-seedling text-sm"></i>
+                                <span class="font-mono text-[10px]">04 / FLORESCER</span>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-2xl text-glowing-white font-light">Futuro Leve</h3>
+                                <p class="text-xs text-silver/60 font-light mt-2">O que é bom floresce no tempo certo e no seu próprio ritmo.</p>
+                            </div>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Virar ↺</span>
+                        </div>
+                        <!-- Back -->
+                        <div class="absolute inset-6 bg-graphite-light border border-silver/20 rounded-xl p-4 flex flex-col justify-between backface-hidden rotate-y-180">
+                            <span class="font-mono text-[10px] text-silver/40">DESEJO</span>
+                            <p class="font-serif text-base text-silver italic my-auto leading-relaxed">
+                                "Que os próximos capítulos tragam sempre momentos fofos e muitas risadas juntas."
+                            </p>
+                            <span class="text-[10px] font-mono text-silver/40 text-right">Voltar ↺</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="text-center py-10 border-t border-white/5 flex flex-col items-center gap-2">
+            <p class="font-serif text-lg text-glowing-white font-light">
+                Feito com carinho para a <span class="text-silver border-b border-silver/30 pb-0.5">Alê</span> ⚜️
+            </p>
+            <p class="text-[11px] font-mono text-silver/40 uppercase tracking-widest mt-1">
+                Lírios Brancos • Música • Penumbra
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- MODAL SECRET MESSAGE (TRIGGERED BY LILY CLICK) -->
+    <div id="secret-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-500">
+        <div class="bg-graphite border border-silver/30 rounded-3xl p-8 max-w-md w-full text-center relative shadow-2xl glow-silver transform scale-95 transition-transform duration-500" id="secret-modal-card">
+            
+            <button id="close-modal" class="absolute top-4 right-4 text-silver/40 hover:text-white text-sm">
+                <i class="fas fa-xmark"></i>
+            </button>
+
+            <div class="w-12 h-12 rounded-full bg-silver/10 text-white flex items-center justify-center mx-auto mb-4 border border-silver/20">
+                <i class="fas fa-spa text-lg"></i>
+            </div>
+
+            <h3 class="font-serif text-2xl text-glowing-white font-light mb-2">Segredo do Lírio</h3>
+            
+            <p class="font-serif text-base text-silver italic leading-relaxed my-4">
+                "Assim como o lírio branco destaca sua luz na penumbra, sua presença traz uma paz única e especial."
+            </p>
+
+            <button id="btn-modal-ok" class="mt-2 px-6 py-2 rounded-full bg-silver/20 hover:bg-silver/30 border border-silver/40 text-xs font-mono text-white transition-all">
+                Guardar este pensamento
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ENGINE & LYRICS DATA -->
+    <script>
+        // --- DUAL LANGUAGE TIMESTAMPED LYRICS DATA (Jutes - Sleepyhead) ---
+        const lyricsData = [
+            { time: 0.0,   en: "Sleepyhead", pt: "Dorminhoco" },
+            { time: 4.0,   en: "We’re all alone", pt: "Estamos sozinhos" },
+            { time: 9.0,   en: "In the shadows with the silhouettes baby", pt: "Nas sombras com as silhuetas, querida" },
+            { time: 15.0,  en: "Lips around your cigarette baby", pt: "Lábios em volta do seu cigarro, querida" },
+            { time: 21.0,  en: "Pull it slow", pt: "Puxe devagar" },
+            { time: 25.0,  en: "I'm stumbling like the living dead lately", pt: "Estou tropeçando como um morto-vivo ultimamente" },
+            { time: 31.0,  en: "Hold me till the bitter end, save me", pt: "Me segure até o amargo fim, me salve" },
+            { time: 37.0,  en: "Don’t let me go", pt: "Não me deixe ir" },
+            { time: 42.0,  en: "When we’re hiding in the dark, it feels perfect", pt: "Quando estamos nos escondendo no escuro, parece perfeito" },
+            { time: 48.0,  en: "All these cameras making me nervous, oh no", pt: "Todas essas câmeras estão me deixando nervoso, oh não" },
+            { time: 54.0,  en: "Used to living somewhere under the surface", pt: "Costumava viver em algum lugar sob a superfície" },
+            { time: 60.0,  en: "Looking for purpose", pt: "Procurando por um propósito" },
+            { time: 64.0,  en: "Where do I fit?", pt: "Onde eu me encaixo?" },
+            { time: 67.0,  en: "I don’t belong?", pt: "Eu não pertenço?" },
+            { time: 70.0,  en: "If I wake up", pt: "Se eu acordar" },
+            { time: 73.0,  en: "Will you be gone?", pt: "Você terá ido embora?" },
+            { time: 76.0,  en: "I’d die in my sleep", pt: "Eu morreria dormindo" },
+            { time: 80.0,  en: "To live in your arms", pt: "Para viver em seus braços" },
+            { time: 84.0,  en: "And I’d stay trapped in this dream", pt: "E eu ficaria preso nesse sonho" },
+            { time: 88.0,  en: "Don’t ring the alarm", pt: "Não toque o alarme" },
+            { time: 92.0,  en: "I’d die in my sleep", pt: "Eu morreria dormindo" },
+            { time: 96.0,  en: "Why do I always gotta be like this", pt: "Por que eu sempre tenho que ser assim" },
+            { time: 101.0, en: "Sunny, so I manifest lightning", pt: "Ensolarado, então eu manifesto raios" },
+            { time: 105.0, en: "It’s a curse", pt: "É uma maldição" },
+            { time: 108.0, en: "Intrusive thoughts got me nose diving", pt: "Pensamentos intrusivos me fazem mergulhar de cabeça" },
+            { time: 114.0, en: "When it’s going well, I hear sirens", pt: "Quando está indo bem, eu ouço sirenes" },
+            { time: 119.0, en: "And I'm in the hearse", pt: "E estou no carro fúnebre" },
+            { time: 123.0, en: "While I'm hanging up out the sunroof", pt: "Enquanto estou pendurado para fora do teto solar" },
+            { time: 128.0, en: "It’s over for me the second that I get cut loose", pt: "É o fim para mim no momento em que eu me soltar" },
+            { time: 134.0, en: "But you’re still here with me, dancing under the blood Moon", pt: "Mas você ainda está aqui comigo, dançando sob a Lua de sangue" },
+            { time: 141.0, en: "Hope I can trust you", pt: "Espero poder confiar em você" },
+            { time: 145.0, en: "There’s nowhere to hide", pt: "Não há lugar para se esconder" },
+            { time: 148.0, en: "I'm lost and I'm scared", pt: "Estou perdido e com medo" },
+            { time: 152.0, en: "If I open my eyes", pt: "Se eu abrir os olhos" },
+            { time: 155.0, en: "Will you be there?", pt: "Você estará lá?" },
+            { time: 159.0, en: "I’d die in my sleep", pt: "Eu morreria dormindo" },
+            { time: 163.0, en: "To live in your arms", pt: "Para viver em seus braços" },
+            { time: 167.0, en: "And I’d stay trapped in this dream", pt: "E eu ficaria preso nesse sonho" },
+            { time: 171.0, en: "Don’t ring the alarm", pt: "Não toque o alarme" },
+            { time: 175.0, en: "(I’d die in my sleep)", pt: "(Eu morreria dormindo)" },
+            { time: 178.0, en: "(I’d die in my sleep)", pt: "(Eu morreria dormindo)" }
+        ];
+
+        // --- 1. FLOATING WHITE LILY PETALS CANVAS ---
+        const canvas = document.getElementById('petals-canvas');
+        const ctx = canvas.getContext('2d');
+        let petals = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class WhitePetal {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = -30;
+                this.size = Math.random() * 8 + 6;
+                this.speedY = Math.random() * 0.7 + 0.4;
+                this.speedX = Math.sin(Math.random() * Math.PI) * 0.5;
+                this.rotation = Math.random() * 360;
+                this.rotSpeed = (Math.random() - 0.5) * 1.5;
+                this.opacity = Math.random() * 0.5 + 0.3;
+            }
+            update() {
+                this.y += this.speedY;
+                this.x += Math.sin(this.y * 0.008) * 0.6 + this.speedX;
+                this.rotation += this.rotSpeed;
+                if (this.y > canvas.height + 30) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate((this.rotation * Math.PI) / 180);
+                
+                ctx.fillStyle = `rgba(241, 245, 249, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size * 1.4);
+                ctx.quadraticCurveTo(this.size * 0.8, 0, 0, this.size * 1.4);
+                ctx.quadraticCurveTo(-this.size * 0.8, 0, 0, -this.size * 1.4);
+                ctx.fill();
+
+                ctx.strokeStyle = `rgba(203, 213, 225, ${this.opacity * 0.6})`;
+                ctx.lineWidth = 0.5;
+                ctx.beginPath();
+                ctx.moveTo(0, -this.size * 1.2);
+                ctx.lineTo(0, this.size * 1.2);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        for (let i = 0; i < 28; i++) {
+            const p = new WhitePetal();
+            p.y = Math.random() * canvas.height;
+            petals.push(p);
+        }
+
+        function animatePetals() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            petals.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animatePetals);
+        }
+        animatePetals();
+
+
+        // --- 2. LYRICS DOM RENDER & AUTO-SCROLL ENGINE ---
+        const lyricsScrollBox = document.getElementById('lyrics-scroll-box');
+        let currentActiveLyricIndex = -1;
+
+        function renderLyrics() {
+            lyricsScrollBox.innerHTML = '';
+            lyricsData.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'lyric-item p-3 rounded-xl border border-transparent cursor-pointer flex flex-col gap-0.5';
+                div.dataset.index = index;
+                div.dataset.time = item.time;
+
+                div.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <span class="font-sans font-medium text-sm text-glowing-white">${item.en}</span>
+                        <span class="font-mono text-[10px] text-silver/30">${formatTime(item.time)}</span>
+                    </div>
+                    <span class="font-serif italic text-xs text-silver/80">${item.pt}</span>
+                `;
+
+                // Click lyric to seek audio
+                div.addEventListener('click', () => {
+                    audio.currentTime = item.time;
+                    if (audio.paused) {
+                        togglePlay();
+                    }
+                });
+
+                lyricsScrollBox.appendChild(div);
+            });
+        }
+        renderLyrics();
+
+        function syncLyrics(currentTime) {
+            let activeIndex = -1;
+            for (let i = 0; i < lyricsData.length; i++) {
+                if (currentTime >= lyricsData[i].time) {
+                    activeIndex = i;
+                } else {
+                    break;
+                }
+            }
+
+            if (activeIndex !== currentActiveLyricIndex) {
+                currentActiveLyricIndex = activeIndex;
+                const lyricElements = lyricsScrollBox.querySelectorAll('.lyric-item');
+                
+                lyricElements.forEach((el, idx) => {
+                    if (idx === activeIndex) {
+                        el.classList.add('active');
+                        // Auto scroll into center view
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        el.classList.remove('active');
+                    }
+                });
+            }
+        }
+
+
+        // --- 3. HTML5 AUDIO PLAYER ENGINE ---
+        const audio = document.getElementById('custom-audio');
+        const btnPlayToggle = document.getElementById('btn-play-toggle');
+        const playPauseIcon = document.getElementById('play-pause-icon');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const currentTimeEl = document.getElementById('current-time');
+        const totalDurationEl = document.getElementById('total-duration');
+        const volumeSlider = document.getElementById('volume-slider');
+        const volumeIcon = document.getElementById('volume-icon');
+        const btnMute = document.getElementById('btn-mute');
+        const playerStateText = document.getElementById('player-state-text');
+        
+        const bars = [
+            document.getElementById('bar-1'),
+            document.getElementById('bar-2'),
+            document.getElementById('bar-3'),
+            document.getElementById('bar-4')
+        ];
+
+        // Demo fallback audio if musica.mp3 is missing
+        audio.addEventListener('error', () => {
+            console.log("Arquivo ./musica.mp3 não encontrado localmente. Usando demonstração.");
+            audio.src = "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=soft-piano-ambient-111154.mp3";
+        });
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function togglePlay() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    updatePlayerUI(true);
+                }).catch((err) => {
+                    console.log("Erro ao reproduzir áudio:", err);
+                });
+            } else {
+                audio.pause();
+                updatePlayerUI(false);
+            }
+        }
+
+        function updatePlayerUI(isPlaying) {
+            if (isPlaying) {
+                playPauseIcon.className = "fas fa-pause text-lg";
+                playerStateText.innerText = "Tocando";
+                bars.forEach((bar, idx) => {
+                    bar.className = `w-1 bg-white rounded-full animate-bar-${idx + 1}`;
+                });
+            } else {
+                playPauseIcon.className = "fas fa-play text-lg ml-0.5";
+                playerStateText.innerText = "Pausado";
+                bars.forEach(bar => {
+                    bar.className = "w-1 bg-silver/40 rounded-full h-1";
+                });
+            }
+        }
+
+        btnPlayToggle.addEventListener('click', togglePlay);
+
+        // Update timeline & sync lyrics
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const pct = (audio.currentTime / audio.duration) * 100;
+                progressBar.style.width = `${pct}%`;
+                currentTimeEl.innerText = formatTime(audio.currentTime);
+            }
+            syncLyrics(audio.currentTime);
+        });
+
+        audio.addEventListener('loadedmetadata', () => {
+            totalDurationEl.innerText = formatTime(audio.duration);
+        });
+
+        audio.addEventListener('ended', () => {
+            updatePlayerUI(false);
+            progressBar.style.width = '0%';
+        });
+
+        // Click timeline to seek
+        progressContainer.addEventListener('click', (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = clickX / rect.width;
+            if (audio.duration) {
+                audio.currentTime = pct * audio.duration;
+            }
+        });
+
+        // Volume control
+        volumeSlider.addEventListener('input', (e) => {
+            audio.volume = e.target.value;
+            updateVolumeIcon(audio.volume);
+        });
+
+        function updateVolumeIcon(vol) {
+            if (vol == 0) {
+                volumeIcon.className = "fas fa-volume-xmark text-xs text-red-400";
+            } else if (vol < 0.5) {
+                volumeIcon.className = "fas fa-volume-low text-xs";
+            } else {
+                volumeIcon.className = "fas fa-volume-high text-xs";
+            }
+        }
+
+        btnMute.addEventListener('click', () => {
+            if (audio.volume > 0) {
+                audio.dataset.prevVol = audio.volume;
+                audio.volume = 0;
+                volumeSlider.value = 0;
+            } else {
+                const prev = audio.dataset.prevVol || 0.8;
+                audio.volume = prev;
+                volumeSlider.value = prev;
+            }
+            updateVolumeIcon(audio.volume);
+        });
+
+        // SONG PANEL (ALT SOURCES)
+        const btnChangeSong = document.getElementById('btn-change-song');
+        const btnClosePanel = document.getElementById('btn-close-panel');
+        const songPanel = document.getElementById('song-panel');
+        const fileInput = document.getElementById('file-input');
+        const urlInput = document.getElementById('url-input');
+        const btnLoadUrl = document.getElementById('btn-load-url');
+
+        btnChangeSong.addEventListener('click', () => songPanel.classList.toggle('hidden'));
+        btnClosePanel.addEventListener('click', () => songPanel.classList.add('hidden'));
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                audio.src = URL.createObjectURL(file);
+                audio.play();
+                updatePlayerUI(true);
+                songPanel.classList.add('hidden');
+            }
+        });
+
+        btnLoadUrl.addEventListener('click', () => {
+            const url = urlInput.value.trim();
+            if (url) {
+                audio.src = url;
+                audio.play();
+                updatePlayerUI(true);
+                songPanel.classList.add('hidden');
+            }
+        });
+
+
+        // --- 4. INTERACTIVE CARDS FLIP ---
+        const cards = document.querySelectorAll('.card-container');
+        cards.forEach(card => {
+            card.addEventListener('click', () => {
+                const inner = card.querySelector('.card-inner');
+                inner.classList.toggle('rotate-y-180');
+            });
+        });
+
+
+        // --- 5. SECRET LILY MODAL ---
+        const interactiveLily = document.getElementById('interactive-lily');
+        const secretModal = document.getElementById('secret-modal');
+        const secretModalCard = document.getElementById('secret-modal-card');
+        const closeModal = document.getElementById('close-modal');
+        const btnModalOk = document.getElementById('btn-modal-ok');
+
+        function openSecretModal() {
+            secretModal.classList.remove('opacity-0', 'pointer-events-none');
+            secretModalCard.classList.remove('scale-95');
+            secretModalCard.classList.add('scale-100');
+        }
+
+        function closeSecretModal() {
+            secretModal.classList.add('opacity-0', 'pointer-events-none');
+            secretModalCard.classList.remove('scale-100');
+            secretModalCard.classList.add('scale-95');
+        }
+
+        interactiveLily.addEventListener('click', openSecretModal);
+        closeModal.addEventListener('click', closeSecretModal);
+        btnModalOk.addEventListener('click', closeSecretModal);
+        secretModal.addEventListener('click', (e) => {
+            if (e.target === secretModal) closeSecretModal();
+        });
+    </script>
+</body>
+</html>
